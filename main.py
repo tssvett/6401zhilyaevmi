@@ -1,28 +1,56 @@
+"""
+main.py
+
+Пример лабораторной работы по курсу "Технологии программирования на Python".
+
+Модуль предназначен для демонстрации работы с обработкой изображений с помощью библиотеки OpenCV.
+Реализован консольный интерфейс для применения различных методов обработки к изображению:
+- обнаружение границ (edges)
+- обнаружение углов (corners)
+- обнаружение окружностей (circles)
+
+Запуск:
+    python main.py <метод> <путь_к_изображению> [-o путь_для_сохранения]
+
+Аргументы:
+    метод: edges | corners | circles
+    путь_к_изображению: путь к входному изображению
+    -o, --output: путь для сохранения результата (по умолчанию: <имя_входного_файла>_result.png)
+
+Пример:
+    python main.py edges input.jpg
+    python main.py corners input.jpg -o corners_result.png
+
+Автор: [Ваше имя]
+"""
+
 import argparse
 import os
+
 import cv2
+
 from implementation import ImageProcessing
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Обработка изображения с помощью методов ImageProcessing (OpenCV)."
+        description="Обработка изображения с помощью методов ImageProcessing (OpenCV).",
     )
     parser.add_argument(
         "method",
         choices=[
             "edges",
             "corners",
-            "circles"
+            "circles",
         ],
-        help="Метод обработки: edges, corners, circles"
+        help="Метод обработки: edges, corners, circles",
     )
     parser.add_argument(
         "input",
-        help="Путь к входному изображению"
+        help="Путь к входному изображению",
     )
     parser.add_argument(
         "-o", "--output",
-        help="Путь для сохранения результата (по умолчанию: <input>_result.png)"
+        help="Путь для сохранения результата (по умолчанию: <input>_result.png)",
     )
 
     args = parser.parse_args()
@@ -56,6 +84,7 @@ def main():
     # Сохранение результата
     cv2.imwrite(output_path, result)
     print(f"Результат сохранён в {output_path}")
+
 
 if __name__ == "__main__":
     main()

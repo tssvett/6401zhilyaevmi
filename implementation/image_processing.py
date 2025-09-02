@@ -1,6 +1,25 @@
-import interfaces
-import numpy as np
+"""
+Модуль image_processing.py
+
+Реализация интерфейса IImageProcessing с использованием библиотеки OpenCV.
+
+Содержит класс ImageProcessing, предоставляющий методы для обработки изображений:
+- свёртка изображения с ядром
+- преобразование RGB-изображения в оттенки серого
+- гамма-коррекция
+- обнаружение границ (оператор Кэнни)
+- обнаружение углов (алгоритм Харриса)
+- обнаружение окружностей (метод пока не реализован)
+
+Модуль предназначен для учебных целей (лабораторная работа по курсу "Технологии программирования на Python").
+"""
+
 import cv2
+
+import interfaces
+
+import numpy as np
+
 
 class ImageProcessing(interfaces.IImageProcessing):
     """
@@ -24,11 +43,11 @@ class ImageProcessing(interfaces.IImageProcessing):
 
         Использует функцию cv2.filter2D для применения ядра к изображению.
 
-        Аргументы:
+        Args:
             image (np.ndarray): Входное изображение (может быть цветным или чёрно-белым).
             kernel (np.ndarray): Ядро свёртки (матрица).
 
-        Возвращает:
+        Returns:
             np.ndarray: Изображение после применения свёртки.
         """
         return cv2.filter2D(image, -1, kernel)
@@ -40,10 +59,10 @@ class ImageProcessing(interfaces.IImageProcessing):
         Использует функцию cv2.cvtColor для преобразования цветного изображения
         в чёрно-белое.
 
-        Аргументы:
+        Args:
             image (np.ndarray): Входное RGB-изображение.
 
-        Возвращает:
+        Returns:
             np.ndarray: Одноканальное изображение в оттенках серого.
         """
         return cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
@@ -54,15 +73,16 @@ class ImageProcessing(interfaces.IImageProcessing):
 
         Коррекция осуществляется с помощью таблицы преобразования значений пикселей.
 
-        Аргументы:
+        Args:
             image (np.ndarray): Входное изображение.
             gamma (float): Коэффициент гамма-коррекции (>0).
 
-        Возвращает:
+        Returns:
             np.ndarray: Изображение после гамма-коррекции.
         """
         inv_gamma = 1.0 / gamma
-        table = np.array([(i / 255.0) ** inv_gamma * 255 for i in range(256)]).astype("uint8")
+        table = np.array([(i / 255.0) ** inv_gamma * 255
+                          for i in range(256)]).astype("uint8")
         return cv2.LUT(image, table)
 
     def edge_detection(self, image: np.ndarray) -> np.ndarray:
@@ -72,10 +92,10 @@ class ImageProcessing(interfaces.IImageProcessing):
         Использует оператор Кэнни (cv2.Canny) для выделения границ.
         Предварительно изображение преобразуется в оттенки серого.
 
-        Аргументы:
+        Args:
             image (np.ndarray): Входное изображение (RGB).
 
-        Возвращает:
+        Returns:
             np.ndarray: Одноканальное изображение с выделенными границами.
         """
         gray = self._rgb_to_grayscale(image)
@@ -89,10 +109,10 @@ class ImageProcessing(interfaces.IImageProcessing):
         Использует алгоритм Харриса (cv2.cornerHarris) для поиска углов.
         Углы выделяются красным цветом на копии исходного изображения.
 
-        Аргументы:
+        Args:
             image (np.ndarray): Входное изображение (RGB).
 
-        Возвращает:
+        Returns:
             np.ndarray: Изображение с выделенными углами (красные точки).
         """
         gray = self._rgb_to_grayscale(image)
@@ -110,10 +130,10 @@ class ImageProcessing(interfaces.IImageProcessing):
         Использует преобразование Хафа (cv2.HoughCircles) для поиска окружностей.
         Найденные окружности выделяются зелёным цветом, центры — красным.
 
-        Аргументы:
+        Args:
             image (np.ndarray): Входное изображение (RGB).
 
-        Возвращает:
+        Returns:
             np.ndarray: Изображение с выделенными окружностями.
         """
         raise NotImplementedError("Метод обнаружения окружностей пока не реализован.")
