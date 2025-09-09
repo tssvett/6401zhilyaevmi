@@ -1,3 +1,5 @@
 .venv/
 .flake8
 .idea/
+results/
+__pycache__/
