@@ -51,6 +51,20 @@ class ImageProcessing(interfaces.IImageProcessing):
             np.ndarray: Изображение после применения свёртки.
         """
         return cv2.filter2D(image, -1, kernel)
+    def convolution(self, image: np.ndarray, kernel: np.ndarray) -> np.ndarray:
+        """
+        Выполняет свёртку изображения с заданным ядром.
+
+        Использует функцию cv2.filter2D для применения ядра к изображению.
+
+        Args:
+            image (np.ndarray): Входное изображение (может быть цветным или чёрно-белым).
+            kernel (np.ndarray): Ядро свёртки (матрица).
+
+        Returns:
+            np.ndarray: Изображение после применения свёртки.
+        """
+        return cv2.filter2D(image, -1, kernel)
 
     def _rgb_to_grayscale(self, image: np.ndarray) -> np.ndarray:
         """
