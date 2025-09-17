@@ -17,9 +17,9 @@
  Выполнил 6401 Жиляев Максим Иванович
 """
 
-import numpy as np
-
 import interfaces
+
+import numpy as np
 
 max_pixel_value = 255.0
 
@@ -74,7 +74,11 @@ class CustomImageProcessing(interfaces.IImageProcessing):
         circle_detection(image): Обнаруживает окружности (HoughCircles).
     """
 
-    def _convolution(self, image: np.ndarray, kernel: np.ndarray) -> np.ndarray:
+    def _convolution(
+            self: "CustomImageProcessing",
+            image: np.ndarray,
+            kernel: np.ndarray,
+    ) -> np.ndarray:
         """
         Выполняет свертку изображения
 
@@ -101,9 +105,10 @@ class CustomImageProcessing(interfaces.IImageProcessing):
             for cols in range(image.shape[1]):
                 region = padded[rows: rows + kernel_height, cols: cols + kernel_width]
                 output[rows, cols] = np.sum(region * kernel)
+
         return output
 
-    def _rgb_to_grayscale(self, image: np.ndarray) -> np.ndarray:
+    def _rgb_to_grayscale(self: "CustomImageProcessing", image: np.ndarray) -> np.ndarray:
         """
         Преобразует RGB-изображение в оттенки серого.
 
@@ -131,7 +136,11 @@ class CustomImageProcessing(interfaces.IImageProcessing):
 
         return grayscale_float32
 
-    def _gamma_correction(self, image: np.ndarray, gamma: float) -> np.ndarray:
+    def _gamma_correction(
+            self: "CustomImageProcessing",
+            image: np.ndarray,
+            gamma: float,
+    ) -> np.ndarray:
         """
         Применяет гамма-коррекцию к изображению.
 
@@ -144,6 +153,7 @@ class CustomImageProcessing(interfaces.IImageProcessing):
         """
         if gamma <= 0:
             raise ValueError("Гамма значение должно быть > 0")
+
         normalized = image.astype(np.float32) / max_pixel_value
 
         # Если gamma > 1 - изображение становится темнее
@@ -154,7 +164,7 @@ class CustomImageProcessing(interfaces.IImageProcessing):
 
         return (corrected * max_pixel_value).astype(np.uint8)
 
-    def edge_detection(self, image: np.ndarray) -> np.ndarray:
+    def edge_detection(self: "CustomImageProcessing", image: np.ndarray) -> np.ndarray:
         """
         Выполняет обнаружение границ на изображении.
 
@@ -182,13 +192,18 @@ class CustomImageProcessing(interfaces.IImageProcessing):
             gradient_magnitude = (
                     gradient_magnitude / gradient_magnitude.max() * max_pixel_value
             )
+
         return gradient_magnitude.astype(np.uint8)
 
-    def corner_detection(self, image: np.ndarray) -> np.ndarray:
+    def corner_detection(self: "CustomImageProcessing", image: np.ndarray) -> np.ndarray:
         """
         Выполняет обнаружение углов на изображении с помощью детектора Харриса.
-        @param image: изображение для поиска углов
-        @return: изображение с нарисованными углами
+
+        Args:
+            image (np.ndarray): Входное изображение.
+
+        Returns:
+            result (np.ndarray): Изображение после поиска углов
         """
         # Конфигурационные параметры
 
@@ -209,9 +224,7 @@ class CustomImageProcessing(interfaces.IImageProcessing):
 
         # 4. Поиск углов с адаптивным порогом
 
-        corner_mask = self._find_corners_with_adaptive_threshold(
-            r_norm, corners_amount
-        )
+        corner_mask = self._find_corners_with_adaptive_threshold(r_norm, corners_amount)
 
         # 5. Подавление немаксимумов
 
@@ -224,7 +237,7 @@ class CustomImageProcessing(interfaces.IImageProcessing):
         return result
 
     def _compute_harris_response(
-            self,
+            self: "CustomImageProcessing",
             gray_image: np.ndarray,
             harris_coefficient: float,
     ) -> np.ndarray:
@@ -294,13 +307,14 @@ class CustomImageProcessing(interfaces.IImageProcessing):
         return max(0.1, min(0.9, threshold))
 
     def _find_corners_with_adaptive_threshold(
-            self,
+            self: "CustomImageProcessing",
             normalized_response: np.ndarray,
             target_corners: int,
     ) -> np.ndarray:
         """Находит углы используя адаптивный порог."""
         threshold = self._find_adaptive_threshold(
-            normalized_response, target_corners,
+            normalized_response,
+            target_corners,
         )
         return normalized_response > threshold
 
@@ -318,19 +332,14 @@ class CustomImageProcessing(interfaces.IImageProcessing):
                 if corners_mask[row, col]:
                     # берем область 3x3 вокруг текущего пикселя
                     # это окно для сравнения силы угла с соседями
-
-                    neighborhood = normalized_response[
-                                   row - 1: row + 2, col - 1: col + 2
-                                   ]
+                    neighborhood = normalized_response[row - 1: row + 2, col - 1: col + 2]
                     if normalized_response[row, col] == np.max(neighborhood):
                         local_maxima_mask[row, col] = True
 
         return local_maxima_mask
 
     @staticmethod
-    def _visualize_corners(
-            image: np.ndarray, corners_mask: np.ndarray
-    ) -> np.ndarray:
+    def _visualize_corners(image: np.ndarray, corners_mask: np.ndarray) -> np.ndarray:
         """Визуализирует найденные углы на изображении."""
         result_image = image.copy().astype(np.uint8)
         height, width = image.shape[:2]
@@ -348,9 +357,13 @@ class CustomImageProcessing(interfaces.IImageProcessing):
                 result_image[y_start:y_end, x_start:x_end, 0] = 0  # B
                 result_image[y_start:y_end, x_start:x_end, 1] = 0  # G
                 result_image[y_start:y_end, x_start:x_end, 2] = 255  # R
+
         return result_image
 
-    def circle_detection(self, image: np.ndarray) -> np.ndarray:
+    def circle_detection(
+            self: "CustomImageProcessing",
+            image: np.ndarray,
+    ) -> np.ndarray:
         """
         Выполняет обнаружение окружностей на изображении.
 
@@ -363,6 +376,4 @@ class CustomImageProcessing(interfaces.IImageProcessing):
         Raises:
             NotImplementedError: Ошибка о не написании
         """
-        raise NotImplementedError(
-            "Метод обнаружения окружностей пока не реализован."
-        )
+        raise NotImplementedError("Метод обнаружения окружностей пока не реализован.")

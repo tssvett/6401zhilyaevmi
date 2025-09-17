@@ -15,10 +15,9 @@
 """
 
 import cv2
+import numpy as np
 
 import interfaces
-
-import numpy as np
 
 
 class ImageProcessing(interfaces.IImageProcessing):
@@ -51,6 +50,7 @@ class ImageProcessing(interfaces.IImageProcessing):
             np.ndarray: Изображение после применения свёртки.
         """
         return cv2.filter2D(image, -1, kernel)
+
     def convolution(self, image: np.ndarray, kernel: np.ndarray) -> np.ndarray:
         """
         Выполняет свёртку изображения с заданным ядром.
@@ -95,8 +95,9 @@ class ImageProcessing(interfaces.IImageProcessing):
             np.ndarray: Изображение после гамма-коррекции.
         """
         inv_gamma = 1.0 / gamma
-        table = np.array([(i / 255.0) ** inv_gamma * 255
-                          for i in range(256)]).astype("uint8")
+        table = np.array([(i / 255.0) ** inv_gamma * 255 for i in range(256)]).astype(
+            "uint8"
+        )
         return cv2.LUT(image, table)
 
     def edge_detection(self, image: np.ndarray) -> np.ndarray:
