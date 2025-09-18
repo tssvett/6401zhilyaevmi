@@ -267,8 +267,6 @@ class CustomImageProcessing(interfaces.IImageProcessing):
             threshold = sorted_response[target_corners_number]
         else:
             threshold = sorted_response[-1] if len(sorted_response) > 0 else 0.5
-        # Ограничиваем порог чтобы он был минимум 0.1 и максимум 0.9,
-        # так стабильнее работает
 
         return max(0.1, min(0.9, threshold))
 
