@@ -91,9 +91,6 @@ class CustomImageProcessing(interfaces.IImageProcessing):
         """
         kernel_height, kernel_width = kernel.shape
         pad_height, pad_width = kernel_height // 2, kernel_width // 2
-
-        # Добавляем padding
-
         padded = np.pad(
             image,
             ((pad_height, pad_height), (pad_width, pad_width)),
@@ -130,7 +127,6 @@ class CustomImageProcessing(interfaces.IImageProcessing):
         )
 
         # Ограничиваемся диапазоном [0, 255], тк пиксель у нас от 0 до 255
-
         grayscale_clipped = np.clip(grayscale, 0, max_pixel_value)
         grayscale_float32 = grayscale_clipped.astype(np.float32)
 
@@ -183,11 +179,9 @@ class CustomImageProcessing(interfaces.IImageProcessing):
         gradient_y = self._convolution(gray, sobel_kernel_y)
 
         # величина градиента показывает "силу границ"
-
         gradient_magnitude = np.sqrt(gradient_x ** 2 + gradient_y ** 2)
 
         # тут проверяем что больше нуля чтоб на ноль не поделить случайно
-
         if gradient_magnitude.max() > 0:
             gradient_magnitude = (
                     gradient_magnitude / gradient_magnitude.max() * max_pixel_value
@@ -206,32 +200,13 @@ class CustomImageProcessing(interfaces.IImageProcessing):
             result (np.ndarray): Изображение после поиска углов
         """
         # Конфигурационные параметры
-
         harris_k = 0.04
         corners_amount = 1000
-
-        # 1. Предварительная обработка
-
         gray_image = self._rgb_to_grayscale(image)
-
-        # 2. Вычисление отклика Харриса
-
         harris_response = self._compute_harris_response(gray_image, harris_k)
-
-        # 3. Нормализация отклика
-
         r_norm = self._normalize_harris_response(harris_response)
-
-        # 4. Поиск углов с адаптивным порогом
-
         corner_mask = self._find_corners_with_adaptive_threshold(r_norm, corners_amount)
-
-        # 5. Подавление немаксимумов
-
         local_maxima = self._non_maximum_suppression(r_norm, corner_mask)
-
-        # 6. Визуализация результатов
-
         result = self._visualize_corners(image, local_maxima)
 
         return result
@@ -242,25 +217,16 @@ class CustomImageProcessing(interfaces.IImageProcessing):
             harris_coefficient: float,
     ) -> np.ndarray:
         """Вычисляет отклик Харриса для изображения в градациях серого."""
-
-        # Вычисляем производные
-
         gradient_x = self._convolution(gray_image, sobel_kernel_x)
         gradient_y = self._convolution(gray_image, sobel_kernel_y)
-
-        # Элементы матрицы структуры
 
         gradient_xx = gradient_x * gradient_x
         gradient_yy = gradient_y * gradient_y
         gradient_xy = gradient_x * gradient_y
 
-        # Гауссово сглаживание
-
         smoothed_xx = self._convolution(gradient_xx, gaussian_kernel)
         smoothed_yy = self._convolution(gradient_yy, gaussian_kernel)
         smoothed_xy = self._convolution(gradient_xy, gaussian_kernel)
-
-        # Отклик Харриса
 
         determinant = smoothed_xx * smoothed_yy - smoothed_xy * smoothed_xy
         trace = smoothed_xx + smoothed_yy
