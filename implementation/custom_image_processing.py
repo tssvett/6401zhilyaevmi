@@ -21,6 +21,9 @@ import interfaces
 
 import numpy as np
 
+from time_measure import measure_time
+from numba import njit, prange
+
 max_pixel_value = 255.0
 
 red_coefficient = 0.299
@@ -74,6 +77,7 @@ class CustomImageProcessing(interfaces.IImageProcessing):
         circle_detection(image): Обнаруживает окружности (HoughCircles).
     """
 
+    @measure_time
     def _convolution(
             self: "CustomImageProcessing",
             image: np.ndarray,
@@ -97,6 +101,11 @@ class CustomImageProcessing(interfaces.IImageProcessing):
             mode="reflect",
         )
 
+        return self.conv(image, padded, kernel_height, kernel_width, kernel)
+
+    @staticmethod
+    @njit
+    def conv(image, padded, kernel_height, kernel_width, kernel):
         output = np.zeros_like(image)
         for rows in range(image.shape[0]):
             for cols in range(image.shape[1]):
@@ -160,6 +169,7 @@ class CustomImageProcessing(interfaces.IImageProcessing):
 
         return (corrected * max_pixel_value).astype(np.uint8)
 
+    @measure_time
     def edge_detection(self: "CustomImageProcessing", image: np.ndarray) -> np.ndarray:
         """
         Выполняет обнаружение границ на изображении.
@@ -189,7 +199,8 @@ class CustomImageProcessing(interfaces.IImageProcessing):
 
         return gradient_magnitude.astype(np.uint8)
 
-    def corner_detection(self: "CustomImageProcessing", image: np.ndarray) -> np.ndarray:
+    @measure_time
+    def corner_detection(self, image: np.ndarray) -> np.ndarray:
         """
         Выполняет обнаружение углов на изображении с помощью детектора Харриса.
 
@@ -212,7 +223,7 @@ class CustomImageProcessing(interfaces.IImageProcessing):
         return result
 
     def _compute_harris_response(
-            self: "CustomImageProcessing",
+            self,
             gray_image: np.ndarray,
             harris_coefficient: float,
     ) -> np.ndarray:
@@ -246,6 +257,7 @@ class CustomImageProcessing(interfaces.IImageProcessing):
             return np.zeros_like(harris_response)
 
     @staticmethod
+    @njit
     def _find_adaptive_threshold(
             response_norm: np.ndarray,
             target_corners_number: int,
@@ -271,7 +283,7 @@ class CustomImageProcessing(interfaces.IImageProcessing):
         return max(0.1, min(0.9, threshold))
 
     def _find_corners_with_adaptive_threshold(
-            self: "CustomImageProcessing",
+            self,
             normalized_response: np.ndarray,
             target_corners: int,
     ) -> np.ndarray:
@@ -303,6 +315,7 @@ class CustomImageProcessing(interfaces.IImageProcessing):
         return local_maxima_mask
 
     @staticmethod
+    @njit
     def _visualize_corners(image: np.ndarray, corners_mask: np.ndarray) -> np.ndarray:
         """Визуализирует найденные углы на изображении."""
         result_image = image.copy().astype(np.uint8)
@@ -325,7 +338,7 @@ class CustomImageProcessing(interfaces.IImageProcessing):
         return result_image
 
     def circle_detection(
-            self: "CustomImageProcessing",
+            self,
             image: np.ndarray,
     ) -> np.ndarray:
         """

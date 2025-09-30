@@ -18,6 +18,7 @@ import cv2
 import numpy as np
 
 import interfaces
+from time_measure import measure_time
 
 
 class ImageProcessing(interfaces.IImageProcessing):
@@ -100,6 +101,7 @@ class ImageProcessing(interfaces.IImageProcessing):
         )
         return cv2.LUT(image, table)
 
+    @measure_time
     def edge_detection(self, image: np.ndarray) -> np.ndarray:
         """
         Выполняет обнаружение границ на изображении.
@@ -114,9 +116,10 @@ class ImageProcessing(interfaces.IImageProcessing):
             np.ndarray: Одноканальное изображение с выделенными границами.
         """
         gray = self._rgb_to_grayscale(image)
-        edges = cv2.Canny(gray, 100, 200)
+        edges = cv2.Canny(gray, 200, 300)
         return edges
 
+    @measure_time
     def corner_detection(self, image: np.ndarray) -> np.ndarray:
         """
         Выполняет обнаружение углов на изображении.
