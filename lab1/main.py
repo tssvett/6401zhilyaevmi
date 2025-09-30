@@ -33,8 +33,8 @@ import os
 
 import cv2
 
-from implementation import ImageProcessing
-from implementation.custom_image_processing import CustomImageProcessing
+from lab1.implementation import ImageProcessing
+from lab1.implementation.custom_image_processing import CustomImageProcessing
 
 
 def main() -> None:

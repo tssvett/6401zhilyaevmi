@@ -17,12 +17,12 @@
  Выполнил 6401 Жиляев Максим Иванович
 """
 
-import interfaces
+from lab1 import interfaces
 
 import numpy as np
 
-from time_measure import measure_time
-from numba import njit, prange
+from lab1.utils.time_measure import measure_time
+from numba import njit
 
 max_pixel_value = 255.0
 

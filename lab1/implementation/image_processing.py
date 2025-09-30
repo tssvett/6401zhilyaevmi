@@ -17,8 +17,8 @@
 import cv2
 import numpy as np
 
-import interfaces
-from time_measure import measure_time
+from lab1 import interfaces
+from lab1.utils.time_measure import measure_time
 
 
 class ImageProcessing(interfaces.IImageProcessing):
