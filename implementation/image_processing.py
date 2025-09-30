@@ -15,10 +15,10 @@
 """
 
 import cv2
+import numpy as np
 
 import interfaces
-
-import numpy as np
+from time_measure import measure_time
 
 
 class ImageProcessing(interfaces.IImageProcessing):
@@ -38,6 +38,21 @@ class ImageProcessing(interfaces.IImageProcessing):
     """
 
     def _convolution(self, image: np.ndarray, kernel: np.ndarray) -> np.ndarray:
+        """
+        Выполняет свёртку изображения с заданным ядром.
+
+        Использует функцию cv2.filter2D для применения ядра к изображению.
+
+        Args:
+            image (np.ndarray): Входное изображение (может быть цветным или чёрно-белым).
+            kernel (np.ndarray): Ядро свёртки (матрица).
+
+        Returns:
+            np.ndarray: Изображение после применения свёртки.
+        """
+        return cv2.filter2D(image, -1, kernel)
+
+    def convolution(self, image: np.ndarray, kernel: np.ndarray) -> np.ndarray:
         """
         Выполняет свёртку изображения с заданным ядром.
 
@@ -81,10 +96,12 @@ class ImageProcessing(interfaces.IImageProcessing):
             np.ndarray: Изображение после гамма-коррекции.
         """
         inv_gamma = 1.0 / gamma
-        table = np.array([(i / 255.0) ** inv_gamma * 255
-                          for i in range(256)]).astype("uint8")
+        table = np.array([(i / 255.0) ** inv_gamma * 255 for i in range(256)]).astype(
+            "uint8"
+        )
         return cv2.LUT(image, table)
 
+    @measure_time
     def edge_detection(self, image: np.ndarray) -> np.ndarray:
         """
         Выполняет обнаружение границ на изображении.
@@ -99,9 +116,10 @@ class ImageProcessing(interfaces.IImageProcessing):
             np.ndarray: Одноканальное изображение с выделенными границами.
         """
         gray = self._rgb_to_grayscale(image)
-        edges = cv2.Canny(gray, 100, 200)
+        edges = cv2.Canny(gray, 200, 300)
         return edges
 
+    @measure_time
     def corner_detection(self, image: np.ndarray) -> np.ndarray:
         """
         Выполняет обнаружение углов на изображении.
