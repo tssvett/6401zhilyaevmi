@@ -1,28 +1,19 @@
-
-
 from lab2.CatImageProcessor import CatImageProcessor
-
-
 
 
 def main():
     try:
-        processor = CatImageProcessor()
-
-        # Запрос количества изображений
         limit = int(input("Введите количество изображений: "))
+        if limit > 100:
+            print("Максимальное количество изображений за один запрос - 100. Установлено 100.")
+            limit = 100
 
-        # 1. Получаем данные из API
-        api_data = processor.get_images_from_api(limit)
+        processor = CatImageProcessor()
+        api_data = processor.get_json_images(limit)
 
         if api_data:
-            # 2. Преобразуем в CatImage
-            cat_images = processor.map_to_cat_images(api_data)
-
-            # 3. Обрабатываем изображения (используем методы вашего CatImage)
+            cat_images = processor.json_to_cat_images(api_data)
             processed_data = processor.process_images(cat_images)
-
-            # 4. Сохраняем результаты
             processor.save_images(cat_images, processed_data)
 
     except ValueError as e:

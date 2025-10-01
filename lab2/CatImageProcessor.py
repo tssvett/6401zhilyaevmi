@@ -21,10 +21,37 @@ class CatImageProcessor:
         Инициализация процессора.
         """
         self._base_url = "https://api.thecatapi.com/v1/images/search"
-        self._api_key = self.get_api_key()
+        self._api_key = self._get_api_key()
 
     @measure_time
-    def get_api_key(self) -> str:
+    def _build_cat_image(self, image_url: str, breed: str) -> CatImage | None:
+        """
+        Собирает объект кошки из урла и породы
+
+        Args:
+            @param breed: Порода кошки
+            @param image_url: Ссылка на изображение кошки
+
+        Returns:
+            Объект CatImage или None при ошибке
+        """
+        try:
+            image = self.download_image(image_url)
+            if image is None:
+                print(f"Не удалось загрузить изображение с URL: {image_url}")
+                return None
+
+            cat_image = CatImage(image, image_url, breed)
+            print(f"Изображение кота смапплено успешно: {cat_image}")
+
+            return cat_image
+
+        except (KeyError, IndexError) as exception:
+            print(f"Ошибка при обработке данных изображения: {exception}")
+            return None
+
+    @measure_time
+    def _get_api_key(self) -> str:
         """
         Получает API ключ из переменных окружения.
 
@@ -43,15 +70,15 @@ class CatImageProcessor:
         return api_key
 
     @measure_time
-    def get_images_from_api(self, limit: int = 1) -> List[Dict[str, Any]]:
+    def get_json_images(self, limit: int = 1) -> List[Dict[str, Any]]:
         """
-        Получает только данные изображений из API.
+        Получение данных из API
 
         Args:
             limit: количество изображений для получения
 
         Returns:
-            Список словарей с данными изображений
+            Список jsonов для изображений
         """
         print(f"Получение {limit} изображений из API...")
 
@@ -71,7 +98,30 @@ class CatImageProcessor:
             return []
 
     @measure_time
-    def map_to_cat_images(self, api_data: List[Dict[str, Any]]) -> List[CatImage]:
+    def download_image(self, image_url: str) -> np.ndarray:
+        """
+        Загружает изображение по URL.
+
+        Args:
+            image_url: URL изображения для загрузки
+
+        Returns:
+            numpy-массив с изображением или None при ошибке
+        """
+        try:
+            img_response = requests.get(image_url)
+            img_array = np.frombuffer(img_response.content, np.uint8)
+            image = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+
+            return image
+
+        except Exception as e:
+            print(f"Ошибка при загрузке изображения {image_url}: {e}")
+
+            return None
+
+    @measure_time
+    def json_to_cat_images(self, api_data: List[Dict[str, Any]]) -> List[CatImage]:
         """
         Преобразует данные API в объекты CatImage.
 
@@ -81,30 +131,18 @@ class CatImageProcessor:
         Returns:
             Список объектов CatImage
         """
+        print("Старт маппинга изображений из API в изображения котов из ЛР2")
         cat_images = []
+        api_data_images_number = len(api_data)
+        for index, item in enumerate(api_data):
+            image_url = item['url']
+            breed = item['breeds'][0]['name'] if item['breeds'] else 'Unknown'
+            cat_image = self._build_cat_image(image_url, breed)
+            if cat_image is not None:
+                cat_images.append(cat_image)
+            print(f"Смаплено {index + 1}/{api_data_images_number} изображений")
+        print(f"Успешно создано {len(cat_images)} объектов котов")
 
-        for item in api_data:
-            try:
-                image_url = item['url']
-                breed = item['breeds'][0]['name'] if item['breeds'] else 'Unknown'
-
-                # Загрузка изображения
-                img_response = requests.get(image_url)
-                img_array = np.frombuffer(img_response.content, np.uint8)
-                image = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
-
-                if image is not None:
-                    cat_image = CatImage(image, image_url, breed)
-                    cat_images.append(cat_image)
-                    print(f"Создан объект CatImage: {cat_image}")
-                else:
-                    print(f"Не удалось декодировать изображение с URL: {image_url}")
-
-            except (KeyError, IndexError) as e:
-                print(f"Ошибка при обработке данных изображения: {e}")
-                continue
-
-        print(f"Успешно создано {len(cat_images)} объектов CatImage")
         return cat_images
 
     @measure_time
@@ -121,25 +159,23 @@ class CatImageProcessor:
             - 'lib_edges': библиотечная обработка
             - 'custom_edges': пользовательская обработка
         """
-        print(f"Обработка {len(cat_images)} изображений...")
-
+        cat_images_number = len(cat_images)
+        print(f"Обработка {cat_images_number} изображений...")
         original_images = []
         lib_edges_images = []
         custom_edges_images = []
-
-        for cat_image in cat_images:
-            # Сохраняем оригинал
-            original_images.append(cat_image.image.copy())
-
-            # Библиотечная обработка (используем ваш метод)
-            lib_edges = cat_image.detect_edges_using_library()
-            lib_edges_images.append(lib_edges)
-
-            # Пользовательская обработка (используем ваш метод)
-            custom_edges = cat_image.detect_edges_using_custom_method()
-            custom_edges_images.append(custom_edges)
-
-        print("Обработка завершена")
+        for index, cat_image in enumerate(cat_images):
+            original_images.append(
+                cat_image.image.copy()
+            )
+            lib_edges_images.append(
+                cat_image.detect_edges_using_library()
+            )
+            custom_edges_images.append(
+                cat_image.detect_edges_using_custom_method()
+            )
+            print(f"Обработано {index + 1}/{cat_images_number} изображений")
+        print(f"Обработка {cat_images_number} завершена успешно")
 
         return {
             'original': original_images,
@@ -165,36 +201,60 @@ class CatImageProcessor:
             return
 
         print(f"Сохранение {len(cat_images)} изображений...")
-
-        # Создание основной директории
         os.makedirs(output_dir, exist_ok=True)
 
         original_images = processed_data['original']
         lib_edges_images = processed_data['lib_edges']
         custom_edges_images = processed_data['custom_edges']
-
-        for i, cat_image in enumerate(cat_images):
-            # Создание поддиректории для породы
+        for index, cat_image in enumerate(cat_images):
             safe_breed = "".join(c if c.isalnum() else "_" for c in cat_image.breed)
-            breed_dir = os.path.join(output_dir, safe_breed)
-            os.makedirs(breed_dir, exist_ok=True)
-
-            # Генерация имен файлов
-            original_path = os.path.join(breed_dir, f"{i + 1}_{safe_breed}_original.jpg")
-            lib_edges_path = os.path.join(breed_dir, f"{i + 1}_{safe_breed}_lib_edges.jpg")
-            custom_edges_path = os.path.join(breed_dir, f"{i + 1}_{safe_breed}_custom_edges.jpg")
+            breed_dir = self._create_breed_directory(safe_breed, output_dir)
+            original_path, lib_edges_path, custom_edges_path = self._generate_file_paths(
+                breed_dir, safe_breed, index
+            )
 
             try:
-                # Сохранение исходного изображения
-                cv2.imwrite(original_path, original_images[i])
-
-                # Сохранение обработанных изображений
-                cv2.imwrite(lib_edges_path, lib_edges_images[i])
-                cv2.imwrite(custom_edges_path, custom_edges_images[i])
-
-                print(f"Сохранено изображение {i + 1}: {cat_image.breed}")
+                cv2.imwrite(original_path, original_images[index])
+                cv2.imwrite(lib_edges_path, lib_edges_images[index])
+                cv2.imwrite(custom_edges_path, custom_edges_images[index])
+                print(f"Сохранено изображение {index + 1}: {cat_image.breed}")
 
             except Exception as e:
-                print(f"Ошибка при сохранении изображения {i + 1}: {e}")
+                print(f"Ошибка при сохранении изображения {index + 1}: {e}")
 
         print(f"Сохранение завершено. Результаты в директории: {output_dir}")
+
+    @measure_time
+    def _create_breed_directory(self, safe_breed: str, output_dir: str) -> str:
+        """
+        Создает безопасную директорию для породы.
+
+        Args:
+            safe_breed: название породы
+            output_dir: основная директория для сохранения
+
+        Returns:
+            Путь к созданной директории
+        """
+        breed_dir = os.path.join(output_dir, safe_breed)
+        os.makedirs(breed_dir, exist_ok=True)
+        return breed_dir
+
+    @measure_time
+    def _generate_file_paths(self, breed_dir: str, safe_breed: str, index: int) -> tuple[str, str, str]:
+        """
+        Генерирует пути для файлов изображений.
+
+        Args:
+            breed_dir: директория породы
+            safe_breed: безопасное название породы
+            index: индекс изображения
+
+        Returns:
+            Кортеж путей (original, lib_edges, custom_edges)
+        """
+        original_path = os.path.join(breed_dir, f"{index + 1}_{safe_breed}_original.jpg")
+        lib_edges_path = os.path.join(breed_dir, f"{index + 1}_{safe_breed}_lib_edges.jpg")
+        custom_edges_path = os.path.join(breed_dir, f"{index + 1}_{safe_breed}_custom_edges.jpg")
+
+        return original_path, lib_edges_path, custom_edges_path

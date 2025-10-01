@@ -17,12 +17,10 @@
  Выполнил 6401 Жиляев Максим Иванович
 """
 
-from lab1 import interfaces
-
 import numpy as np
-
-from lab1.utils.time_measure import measure_time
 from numba import njit
+
+from lab1 import interfaces
 
 max_pixel_value = 255.0
 
@@ -77,7 +75,6 @@ class CustomImageProcessing(interfaces.IImageProcessing):
         circle_detection(image): Обнаруживает окружности (HoughCircles).
     """
 
-    @measure_time
     def _convolution(
             self: "CustomImageProcessing",
             image: np.ndarray,
@@ -169,7 +166,6 @@ class CustomImageProcessing(interfaces.IImageProcessing):
 
         return (corrected * max_pixel_value).astype(np.uint8)
 
-    @measure_time
     def edge_detection(self: "CustomImageProcessing", image: np.ndarray) -> np.ndarray:
         """
         Выполняет обнаружение границ на изображении.
@@ -199,7 +195,6 @@ class CustomImageProcessing(interfaces.IImageProcessing):
 
         return gradient_magnitude.astype(np.uint8)
 
-    @measure_time
     def corner_detection(self, image: np.ndarray) -> np.ndarray:
         """
         Выполняет обнаружение углов на изображении с помощью детектора Харриса.
