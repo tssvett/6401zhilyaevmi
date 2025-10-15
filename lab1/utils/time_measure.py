@@ -6,7 +6,7 @@ def measure_time(func):
         start_time = time.time()
         result = func(*args, **kwargs)
         end_time = time.time()
-        print(f"{func.__name__} выполнено за {end_time - start_time:.4f} секунд")
+        print(f"Метод {func.__name__} выполнен за {end_time - start_time:.4f} секунд")
         return result
 
     return wrapper

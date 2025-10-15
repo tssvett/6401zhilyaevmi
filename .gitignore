@@ -2,4 +2,6 @@
 .flake8
 .idea/
 lab1/results/
+lab2/env/.env
+lab2/cat_images/
 __pycache__/
