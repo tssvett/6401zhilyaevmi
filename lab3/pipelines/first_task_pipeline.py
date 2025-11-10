@@ -1,7 +1,8 @@
 from collections import defaultdict
-from typing import Iterator, Tuple, List, Dict, Any
+from typing import Iterator, Tuple, List
 
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from lab3.pipelines.base_pipiline import BasePipeline
 
@@ -10,16 +11,17 @@ class FirstTaskPipeline(BasePipeline):
     """Пайплайн для задачи 1: Агрегация данных по температуре"""
 
     @staticmethod
-    def extract_temperature_data(weather_rows: Iterator[Dict[str, Any]]) -> Iterator[Tuple[str, int, float]]:
+    def extract_temperature_data(weather_chunks: Iterator[pd.DataFrame]) -> Iterator[Tuple[str, int, float]]:
         """Генератор для извлечения данных о температуре по локациям и годам"""
-        for row in weather_rows:
-            try:
-                location = row['Station.Location']
-                year = int(row['Date.Year'])
-                avg_temp = float(row['Data.Temperature.Avg Temp'])
-                yield location, year, avg_temp
-            except (ValueError, KeyError):
-                continue
+        for chunk in weather_chunks:
+            for _, row in chunk.iterrows():
+                try:
+                    location = row['Station.Location']
+                    year = int(row['Date.Year'])
+                    avg_temp = float(row['Data.Temperature.Avg Temp'])
+                    yield location, year, avg_temp
+                except (ValueError, KeyError):
+                    continue
 
     @staticmethod
     def aggregate_temperature_data(temp_data: Iterator[Tuple[str, int, float]]) -> Iterator[Tuple[str, float]]:
@@ -40,7 +42,7 @@ class FirstTaskPipeline(BasePipeline):
 
     @staticmethod
     def get_top_bottom_locations(avg_temperatures: Iterator[Tuple[str, float]], n: int = 3) -> Tuple[
-           List[Tuple[str, float]], List[Tuple[str, float]]]:
+        List[Tuple[str, float]], List[Tuple[str, float]]]:
         """Получить топ-N самых теплых и холодных локаций"""
         all_locations = list(avg_temperatures)
 

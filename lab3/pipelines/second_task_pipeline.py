@@ -1,8 +1,9 @@
 import matplotlib.pyplot as plt
-from typing import Iterator, Tuple, List, Dict, Any
+from typing import Iterator, Tuple, List
 from collections import defaultdict
 import statistics
 import math
+import pandas as pd
 
 from lab3.pipelines.base_pipiline import BasePipeline
 
@@ -11,18 +12,19 @@ class SecondTaskPipeline(BasePipeline):
     """Пайплайн для задачи 2: Дисперсия и доверительный интервал"""
 
     @staticmethod
-    def extract_state_monthly_temperature_data(weather_rows: Iterator[Dict[str, Any]]) -> Iterator[
+    def extract_state_monthly_temperature_data(weather_chunks: Iterator[pd.DataFrame]) -> Iterator[
            Tuple[str, int, int, float]]:
         """Генератор для извлечения данных о температуре по штатам, годам и месяцам"""
-        for row in weather_rows:
-            try:
-                state = row['Station.State']
-                year = int(row['Date.Year'])
-                month = int(row['Date.Month'])
-                avg_temp = float(row['Data.Temperature.Avg Temp'])
-                yield state, year, month, avg_temp
-            except (ValueError, KeyError):
-                continue
+        for chunk in weather_chunks:
+            for _, row in chunk.iterrows():
+                try:
+                    state = row['Station.State']
+                    year = int(row['Date.Year'])
+                    month = int(row['Date.Month'])
+                    avg_temp = float(row['Data.Temperature.Avg Temp'])
+                    yield state, year, month, avg_temp
+                except (ValueError, KeyError):
+                    continue
 
     @staticmethod
     def calculate_monthly_avg_temperatures(temp_data: Iterator[Tuple[str, int, int, float]]) -> Iterator[

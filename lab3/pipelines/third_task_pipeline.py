@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
-from typing import Iterator, Tuple, List, Dict, Any
+from typing import Iterator, Tuple, List
 from collections import defaultdict
 import statistics
+import pandas as pd
 
 from lab3.pipelines.base_pipiline import BasePipeline
 
@@ -10,16 +11,17 @@ class ThirdTaskPipeline(BasePipeline):
     """Пайплайн для задачи 3: Изменение во времени и скользящее среднее"""
 
     @staticmethod
-    def extract_wind_data(weather_rows: Iterator[Dict[str, Any]]) -> Iterator[Tuple[str, str, float]]:
+    def extract_wind_data(weather_chunks: Iterator[pd.DataFrame]) -> Iterator[Tuple[str, str, float]]:
         """Генератор для извлечения данных о скорости ветра по штатам и датам"""
-        for row in weather_rows:
-            try:
-                state = row['Station.State']
-                date = row['Date.Full']
-                wind_speed = float(row['Data.Wind.Speed'])
-                yield state, date, wind_speed
-            except (ValueError, KeyError):
-                continue
+        for chunk in weather_chunks:
+            for _, row in chunk.iterrows():
+                try:
+                    state = row['Station.State']
+                    date = row['Date.Full']
+                    wind_speed = float(row['Data.Wind.Speed'])
+                    yield state, date, wind_speed
+                except (ValueError, KeyError):
+                    continue
 
     @staticmethod
     def find_windiest_state(wind_data: Iterator[Tuple[str, str, float]]) -> str:
@@ -37,18 +39,19 @@ class ThirdTaskPipeline(BasePipeline):
         return windiest_state[0]
 
     @staticmethod
-    def extract_wind_data_for_state(weather_rows: Iterator[Dict[str, Any]], target_state: str) -> Iterator[
+    def extract_wind_data_for_state(weather_chunks: Iterator[pd.DataFrame], target_state: str) -> Iterator[
            Tuple[str, float]]:
         """Генератор для извлечения данных о скорости ветра для конкретного штата"""
-        for row in weather_rows:
-            try:
-                state = row['Station.State']
-                if state == target_state:
-                    date = row['Date.Full']
-                    wind_speed = float(row['Data.Wind.Speed'])
-                    yield date, wind_speed
-            except (ValueError, KeyError):
-                continue
+        for chunk in weather_chunks:
+            for _, row in chunk.iterrows():
+                try:
+                    state = row['Station.State']
+                    if state == target_state:
+                        date = row['Date.Full']
+                        wind_speed = float(row['Data.Wind.Speed'])
+                        yield date, wind_speed
+                except (ValueError, KeyError):
+                    continue
 
     @staticmethod
     def calculate_moving_average(wind_data: Iterator[Tuple[str, float]], window_size: int = 30) -> Iterator[
