@@ -6,14 +6,14 @@ from lab3.pipelines.third_task_pipeline import ThirdTaskPipeline
 def main():
     file_path = "resources/weather.csv"
 
-    first_task = FirstTaskPipeline()
-    first_task.run(file_path)
+    first_task = FirstTaskPipeline(file_path)
+    first_task.run()
 
-    second_task = SecondTaskPipeline()
-    second_task.run(file_path)
+    second_task = SecondTaskPipeline(file_path)
+    second_task.run()
 
-    third_task = ThirdTaskPipeline()
-    third_task.run(file_path)
+    third_task = ThirdTaskPipeline(file_path)
+    third_task.run()
 
 
 if __name__ == "__main__":

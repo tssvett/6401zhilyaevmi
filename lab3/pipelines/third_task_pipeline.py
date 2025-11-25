@@ -1,95 +1,126 @@
-import matplotlib.pyplot as plt
-from typing import Iterator, Tuple, List
-from collections import defaultdict
-import statistics
+from typing import Generator, List, Tuple, Any
 import pandas as pd
+import matplotlib.pyplot as plt
 
+from lab1.utils.time_measure import measure_time
 from lab3.pipelines.base_pipiline import BasePipeline
+from lab3.utils.utils import memory_logger
 
 
 class ThirdTaskPipeline(BasePipeline):
-    """Пайплайн для задачи 3: Изменение во времени и скользящее среднее"""
+    """Пайплайн для задачи 3: Скорость ветра в самом ветреном штате"""
+
+    def __init__(self, file_path: str):
+        self.file_path = file_path
+
+    @measure_time
+    def get_data(
+            self,
+            columns: List[str] = ['Station.State', 'Date.Full', 'Data.Wind.Speed']
+    ) -> pd.DataFrame | Generator[pd.DataFrame, None, None]:
+        """
+        Метод для загрузки данных о скорости ветра
+        """
+        for chunk in self.read_weather_data(self.file_path):
+            chunk = chunk[columns].copy()
+
+            # Преобразуем в числовые типы
+            chunk['Data.Wind.Speed'] = pd.to_numeric(chunk['Data.Wind.Speed'], errors='coerce')
+
+            # Удаляем строки с NaN
+            chunk = chunk.dropna(subset=['Data.Wind.Speed'])
+
+            if len(chunk) > 0:
+                yield chunk
+
+    @measure_time
+    def aggregate_data(
+            self,
+            data: pd.DataFrame | Generator[pd.DataFrame, None, None]
+    ) -> Tuple[str, pd.DataFrame]:
+        """
+        Метод для нахождения самого ветреного штата и его данных
+        """
+        all_data = pd.DataFrame()
+        state_stats = pd.DataFrame(columns=['State', 'wind_sum', 'count'])
+
+        for chunk in data:
+            # Сохраняем все данные для последующей обработки
+            all_data = pd.concat([all_data, chunk], ignore_index=True)
+
+            # Одновременно собираем статистику по штатам
+            chunk_agg = chunk.groupby('Station.State').agg({
+                'Data.Wind.Speed': ['sum', 'count']
+            }).reset_index()
+
+            chunk_agg.columns = ['State', 'wind_sum', 'count']
+
+            state_stats = pd.concat([state_stats, chunk_agg], ignore_index=True)
+            state_stats = state_stats.groupby('State').agg({
+                'wind_sum': 'sum',
+                'count': 'sum'
+            }).reset_index()
+
+        if state_stats.empty:
+            return "", pd.DataFrame()
+
+        # Находим самый ветреный штат
+        state_stats['avg_wind'] = state_stats['wind_sum'] / state_stats['count']
+        windiest_state = state_stats.loc[state_stats['avg_wind'].idxmax(), 'State']
+
+        # Фильтруем данные только для ветреного штата
+        wind_data = all_data[all_data['Station.State'] == windiest_state].copy()
+        wind_data = wind_data[['Date.Full', 'Data.Wind.Speed']].copy()
+        wind_data.columns = ['Date', 'Wind_Speed']
+        wind_data['Date'] = pd.to_datetime(wind_data['Date'])
+        wind_data = wind_data.sort_values('Date')
+
+        return windiest_state, wind_data
+
+    @measure_time
+    def task_job(self, data: Tuple[str, pd.DataFrame]) -> Tuple[str, pd.DataFrame, pd.DataFrame]:
+        """
+        Метод для вычисления скользящего среднего
+        """
+        windiest_state, wind_data = data
+
+        if wind_data.empty:
+            return "", pd.DataFrame(), pd.DataFrame()
+
+        # Вычисляем скользящее среднее с окном 30 дней
+        wind_data['Moving_Avg_30'] = wind_data['Wind_Speed'].rolling(
+            window=30, min_periods=1, center=True
+        ).mean()
+
+        # Разделяем на исходные данные и скользящее среднее
+        original_data = wind_data[['Date', 'Wind_Speed']].copy()
+        moving_avg_data = wind_data[['Date', 'Moving_Avg_30']].copy()
+        moving_avg_data = moving_avg_data.dropna()  # Убираем NaN по краям
+
+        return windiest_state, original_data, moving_avg_data
 
     @staticmethod
-    def extract_wind_data(weather_chunks: Iterator[pd.DataFrame]) -> Iterator[Tuple[str, str, float]]:
-        """Генератор для извлечения данных о скорости ветра по штатам и датам"""
-        for chunk in weather_chunks:
-            for _, row in chunk.iterrows():
-                try:
-                    state = row['Station.State']
-                    date = row['Date.Full']
-                    wind_speed = float(row['Data.Wind.Speed'])
-                    yield state, date, wind_speed
-                except (ValueError, KeyError):
-                    continue
+    def plot_results(data: Any):
+        """
+        Метод для отрисовки результатов работы
+        """
+        windiest_state, original_data, moving_avg_data = data
 
-    @staticmethod
-    def find_windiest_state(wind_data: Iterator[Tuple[str, str, float]]) -> str:
-        """Найти самый ветреный штат по средней скорости ветра"""
-        state_wind_speeds = defaultdict(list)
+        if original_data.empty:
+            print("Нет данных для построения графика")
+            return
 
-        for state, date, wind_speed in wind_data:
-            state_wind_speeds[state].append(wind_speed)
-
-        state_avg_speeds = {}
-        for state, speeds in state_wind_speeds.items():
-            state_avg_speeds[state] = statistics.mean(speeds)
-
-        windiest_state = max(state_avg_speeds.items(), key=lambda x: x[1])
-        return windiest_state[0]
-
-    @staticmethod
-    def extract_wind_data_for_state(weather_chunks: Iterator[pd.DataFrame], target_state: str) -> Iterator[
-           Tuple[str, float]]:
-        """Генератор для извлечения данных о скорости ветра для конкретного штата"""
-        for chunk in weather_chunks:
-            for _, row in chunk.iterrows():
-                try:
-                    state = row['Station.State']
-                    if state == target_state:
-                        date = row['Date.Full']
-                        wind_speed = float(row['Data.Wind.Speed'])
-                        yield date, wind_speed
-                except (ValueError, KeyError):
-                    continue
-
-    @staticmethod
-    def calculate_moving_average(wind_data: Iterator[Tuple[str, float]], window_size: int = 30) -> Iterator[
-           Tuple[str, float]]:
-        """Генератор для расчета скользящего среднего скорости ветра"""
-        dates = []
-        wind_speeds = []
-
-        for date, wind_speed in wind_data:
-            dates.append(date)
-            wind_speeds.append(wind_speed)
-
-        # Сортируем по дате
-        sorted_data = sorted(zip(dates, wind_speeds), key=lambda x: x[0])
-        dates_sorted, wind_speeds_sorted = zip(*sorted_data)
-
-        # Вычисляем скользящее среднее
-        for i in range(len(wind_speeds_sorted)):
-            if i < window_size - 1:
-                continue
-            window = wind_speeds_sorted[i - window_size + 1:i + 1]
-            moving_avg = sum(window) / len(window)
-            yield dates_sorted[i], moving_avg
-
-    @staticmethod
-    def plot_wind_data_with_moving_average(dates: List[str], wind_speeds: List[float], moving_avgs: List[float],
-                                           state: str):
-        """Построить line plot скорости ветра со скользящим средним"""
         plt.figure(figsize=(14, 7))
 
         # Исходные данные
-        plt.plot(dates, wind_speeds, alpha=0.3, color='blue', label='Скорость ветра')
+        plt.plot(original_data['Date'], original_data['Wind_Speed'],
+                 alpha=0.3, color='blue', label='Скорость ветра', linewidth=0.5)
 
         # Скользящее среднее
-        plt.plot(dates[len(dates) - len(moving_avgs):], moving_avgs, color='red',
-                 linewidth=2, label=f'Скользящее среднее ({30} дней)')
+        plt.plot(moving_avg_data['Date'], moving_avg_data['Moving_Avg_30'],
+                 color='red', linewidth=2, label='Скользящее среднее (30 дней)')
 
-        plt.title(f'Скорость ветра в самом ветреном штате ({state})', fontsize=14)
+        plt.title(f'Скорость ветра в самом ветреном штате ({windiest_state})', fontsize=14)
         plt.xlabel('Дата')
         plt.ylabel('Скорость ветра')
         plt.legend()
@@ -98,35 +129,16 @@ class ThirdTaskPipeline(BasePipeline):
         plt.tight_layout()
         plt.show()
 
-    def run(self, file_path: str):
-        """Запуск пайплайна для задачи 3"""
-        print("\n=== ЗАДАЧА 3: Скорость ветра в самом ветреном штате ===")
-
-        # Находим самый ветреный штат
-        raw_data_1 = self.read_weather_data(file_path)
-        wind_data = self.extract_wind_data(raw_data_1)
-        windiest_state = self.find_windiest_state(wind_data)
+        # Выводим статистику
         print(f"Самый ветреный штат: {windiest_state}")
+        print(f"Средняя скорость ветра: {original_data['Wind_Speed'].mean():.2f}")
+        print(f"Максимальная скорость ветра: {original_data['Wind_Speed'].max():.2f}")
+        print(f"Минимальная скорость ветра: {original_data['Wind_Speed'].min():.2f}")
 
-        # Собираем данные для графика
-        raw_data_2 = self.read_weather_data(file_path)
-        state_wind_data = self.extract_wind_data_for_state(raw_data_2, windiest_state)
-
-        all_dates = []
-        all_wind_speeds = []
-        for date, wind_speed in state_wind_data:
-            all_dates.append(date)
-            all_wind_speeds.append(wind_speed)
-
-        # Вычисляем скользящее среднее
-        raw_data_3 = self.read_weather_data(file_path)
-        state_wind_data_2 = self.extract_wind_data_for_state(raw_data_3, windiest_state)
-        moving_avg_data = self.calculate_moving_average(state_wind_data_2)
-
-        moving_avg_dates = []
-        moving_avg_values = []
-        for date, avg in moving_avg_data:
-            moving_avg_dates.append(date)
-            moving_avg_values.append(avg)
-
-        self.plot_wind_data_with_moving_average(all_dates, all_wind_speeds, moving_avg_values, windiest_state)
+    @memory_logger
+    def run(self):
+        """
+        Обертка-метод для вызова выполнения задания
+        """
+        print("\n=== ЗАДАЧА 3: Скорость ветра в самом ветреном штате ===")
+        self.plot_results(self.task_job(self.aggregate_data(self.get_data())))
