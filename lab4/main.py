@@ -3,8 +3,6 @@ import asyncio
 import sys
 import time
 
-# Добавляем пути для импорта
-
 sys.path.append('.')
 
 from async_cat_image_processor import AsyncCatImageProcessor
@@ -14,22 +12,22 @@ from lab2.CatImageProcessor import CatImageProcessor
 async def test_async_version(limit: int = 5):
     """Тестирование асинхронной версии"""
     print(f"\n=== Тестирование АСИНХРОННОЙ версии ({limit} изображений) ===")
+    print("Использует: asyncio + ProcessPoolExecutor для CPU-bound задач")
 
     start_time = time.time()
 
-    processor = AsyncCatImageProcessor()
-    api_data = await processor.get_json_images_async(limit)
+    try:
+        processor = AsyncCatImageProcessor()
+        await processor.run_async_pipeline(limit)
 
-    if api_data:
-        cat_images = await processor.json_to_cat_images_async(api_data)
-        processed_data = await processor.process_images_parallel(cat_images)
-        await processor.save_images_async(cat_images, processed_data)
+        end_time = time.time()
+        async_time = end_time - start_time
+        print(f"Асинхронная версия выполнена за: {async_time:.2f} секунд")
+        return async_time
 
-    end_time = time.time()
-    async_time = end_time - start_time
-    print(f"Асинхронная версия выполнена за: {async_time:.2f} секунд")
-
-    return async_time
+    except Exception as e:
+        print(f"Ошибка в асинхронной версии: {e}")
+        return float('inf')
 
 
 def test_sync_version(limit: int = 5):
@@ -70,7 +68,7 @@ async def main():
     print(f"Ускорение: {sync_time / async_time:.2f}x")
 
     if async_time < sync_time:
-        print("Асинхронная версия БЫСТРЕЕ!")
+        print("Асинхронная версия БЫСТРЕЕ реще МОЩНЕЕ вообще зверюга мультипроцессинг вперед!")
     else:
         print("Синхронная версия быстрее (это неожиданно)")
 
