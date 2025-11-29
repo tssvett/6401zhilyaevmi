@@ -6,6 +6,7 @@ import pandas as pd
 from lab1.utils.time_measure import measure_time
 from lab3.pipelines.base_pipiline import BasePipeline
 from lab3.utils.utils import memory_logger
+from matplotlib.patches import Patch
 
 
 class FirstTaskPipeline(BasePipeline):
@@ -66,17 +67,25 @@ class FirstTaskPipeline(BasePipeline):
             pd.DataFrame: DataFrame с агрегированными данными по локациям
         """
         # Инициализируем пустой DataFrame с нужными колонками
+
         aggregated = pd.DataFrame(columns=['Station.Location', 'temp_sum', 'count'])
 
         for chunk in data:
             # Конкатенируем с общим DataFrame
             aggregated = pd.concat([aggregated, chunk], ignore_index=True)
+            print("ИНДЕКСЫ ДО ГРУППИРОВКИ" + str(aggregated.index))
 
             # Группируем по локациям для суммирования значений
             aggregated = aggregated.groupby('Station.Location').agg({
                 'Data.Temperature.Avg Temp': 'sum',
                 'count': 'sum'
+            })
+            print("ИНДЕКСЫ ПОСЛЕ ГРУППИРОВКИ " + str(aggregated.index))
+            aggregated = aggregated.groupby('Station.Location').agg({
+                'Data.Temperature.Avg Temp': 'sum',
+                'count': 'sum'
             }).reset_index()
+            print("ИНДЕКСЫ ПОСЛЕ ГРУППИРОВКИ И ПОСЛЕ СБРОСА" + str(aggregated.index))
 
         # Переименовываем колонку для консистентности
         aggregated.columns = ['Station.Location', 'temp_sum', 'count']
@@ -145,8 +154,7 @@ class FirstTaskPipeline(BasePipeline):
         for i, (location, temp) in enumerate(all_locations):
             plt.text(i, temp + 0.1, f'{temp:.1f}°F', ha='center', va='bottom')
 
-        # Добавляем легенду
-        from matplotlib.patches import Patch
+
         legend_elements = [
             Patch(facecolor='red', alpha=0.7, label='Теплые локации'),
             Patch(facecolor='blue', alpha=0.7, label='Холодные локации')

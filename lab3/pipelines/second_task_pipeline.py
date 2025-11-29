@@ -7,6 +7,7 @@ from scipy.stats import norm
 from lab1.utils.time_measure import measure_time
 from lab3.pipelines.base_pipiline import BasePipeline
 from lab3.utils.utils import memory_logger
+from matplotlib.patches import Patch
 
 
 class SecondTaskPipeline(BasePipeline):
@@ -42,32 +43,25 @@ class SecondTaskPipeline(BasePipeline):
                 yield chunk
 
     @measure_time
-    def aggregate_data(
-            self,
-            data: pd.DataFrame | Generator[pd.DataFrame, None, None]
-    ) -> pd.DataFrame:
-        """
-        Метод для вычисления дисперсии температур по штатам
-        """
-        monthly_agg = pd.DataFrame(columns=['State', 'Year', 'Month', 'sum_temp', 'count'])
+    def aggregate_data(self, data):
+        monthly_agg = None
 
         for chunk in data:
-            # Агрегируем чанк
             chunk_agg = chunk.groupby(['Station.State', 'Date.Year', 'Date.Month']).agg(
                 sum_temp=('Data.Temperature.Avg Temp', 'sum'),
                 count=('Data.Temperature.Avg Temp', 'count')
-            ).reset_index()
+            ).reset_index().rename(columns={
+                'Station.State': 'State',
+                'Date.Year': 'Year',
+                'Date.Month': 'Month'
+            }).set_index(['State', 'Year', 'Month']).astype({
+                'sum_temp': float,
+                'count': int
+            })
+            if monthly_agg is None:
+                monthly_agg = chunk_agg
 
-            chunk_agg = chunk_agg.rename(columns={'Station.State': 'State', 'Date.Year': 'Year', 'Date.Month': 'Month'})
-
-            # Объединяем с общими данными
-            monthly_agg = pd.concat([monthly_agg, chunk_agg], ignore_index=True)
-
-            # Суммируем дубликаты
-            monthly_agg = monthly_agg.groupby(['State', 'Year', 'Month']).agg({
-                'sum_temp': 'sum',
-                'count': 'sum'
-            }).reset_index()
+            monthly_agg = monthly_agg.add(chunk_agg, fill_value=0)
 
         if monthly_agg.empty:
             return pd.DataFrame(columns=['State', 'mean', 'std', 'count', 'variance'])
@@ -75,7 +69,6 @@ class SecondTaskPipeline(BasePipeline):
         # Вычисляем среднемесячные температуры
         monthly_agg['monthly_avg'] = monthly_agg['sum_temp'] / monthly_agg['count']
 
-        # Вычисляем дисперсию по штатам
         result = monthly_agg.groupby('State').agg(
             mean=('monthly_avg', 'mean'),
             variance=('monthly_avg', 'var'),
@@ -83,8 +76,8 @@ class SecondTaskPipeline(BasePipeline):
         ).reset_index()
 
         result['std'] = np.sqrt(result['variance'].fillna(0))
-
         return result[['State', 'mean', 'std', 'count', 'variance']]
+
     @measure_time
     def task_job(self, data: pd.DataFrame) -> Tuple[List[Tuple[str, float]], List[Tuple[str, float]], dict]:
         """
@@ -157,7 +150,6 @@ class SecondTaskPipeline(BasePipeline):
         plt.grid(axis='y', alpha=0.3)
 
         # Добавляем легенду
-        from matplotlib.patches import Patch
         legend_elements = [
             Patch(facecolor='green', alpha=0.7, label='Маленький разброс'),
             Patch(facecolor='red', alpha=0.7, label='Большой разброс')
