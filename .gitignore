@@ -4,6 +4,7 @@
 lab1/results/
 lab2/env/.env
 lab2/cat_images/
-lab4/cat_images_async
 lab4/cat_images
-__pycache__/k
+lab4/cat_images_async
+__pycache__/
+
