@@ -29,7 +29,7 @@ class SaveWorker:
                 try:
                     task = await asyncio.wait_for(
                         self.pipeline_manager.save_queue.get(),
-                        timeout=3.0
+                        timeout=10.0
                     )
                 except asyncio.TimeoutError:
                     break
