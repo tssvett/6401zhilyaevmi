@@ -29,7 +29,7 @@ class DownloadWorker:
                 try:
                     index, url = await asyncio.wait_for(
                         self.pipeline_manager.download_queue.get(),
-                        timeout=1.0
+                        timeout=10.0
                     )
                 except asyncio.TimeoutError:
                     break
@@ -67,7 +67,7 @@ class DownloadWorker:
         Загружает одно изображение по URL и преобразует в numpy array.
         """
         try:
-            async with self.session.get(url) as response:
+            async with self.session.get(url, timeout=10) as response:
                 if response.status == 200:
                     content = await response.read()
 

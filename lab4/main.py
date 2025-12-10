@@ -60,7 +60,7 @@ def test_sync_version(limit: int = 5):
 
 
 async def main():
-    limit = 30
+    limit = 1
 
     print("СРАВНЕНИЕ ПРОИЗВОДИТЕЛЬНОСТИ: СИНХРОННАЯ vs АСИНХРОННАЯ")
     print("=" * 60)
