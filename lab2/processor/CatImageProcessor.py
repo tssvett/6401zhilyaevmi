@@ -17,8 +17,8 @@ class CatImageProcessor:
     """
 
     _BASE_URL: Final[str] = "https://api.thecatapi.com/v1/images/search"
-    _DEFAULT_OUTPUT_DIR: Final[str] = "cat_images"
-    _ENV_PATH: Final[str] = "D:/chromedriver/6401zhilyaevmi/lab2/env/.env"
+    _DEFAULT_OUTPUT_DIR: Final[str] = "../cat_images"
+    _ENV_PATH: Final[str] = "/lab2/env/.env"
 
     def __init__(self) -> None:
         """

@@ -1,4 +1,5 @@
 .venv/
+/test_env
 .flake8
 .idea/
 lab1/results/

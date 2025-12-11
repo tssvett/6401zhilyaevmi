@@ -2,10 +2,11 @@ import asyncio
 import logging
 import time
 
-from lab2 import CatImageProcessor
+from lab2.processor.CatImageProcessor import CatImageProcessor
 from lab5.processor.AsyncCatImageProcessor import AsyncCatImageProcessor
 
 import lab5.my_logging
+
 logger = logging.getLogger(__name__)
 
 
