@@ -1,0 +1,26 @@
+Metadata-Version: 2.4
+Name: 6401-gumarov-zhilyaev
+Version: 1.0.0
+Summary: Пакет для загрузки и обработки изображений кошек
+Home-page: https://github.com/yourusername/6401-gumarov-zhilyaev
+Author: Gumarov and Zhilyaev
+Author-email: tssvett@mail.ru
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: aiohttp>=3.8.0
+Requires-Dist: aiofiles>=23.0.0
+Requires-Dist: opencv-python>=4.8.0
+Requires-Dist: numpy>=1.24.0
+Requires-Dist: requests>=2.31.0
+Requires-Dist: python-dotenv>=1.0.0
+Requires-Dist: numba>=0.58.0
+Dynamic: author
+Dynamic: author-email
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
+
+simple module cat-image processor app

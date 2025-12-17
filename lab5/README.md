@@ -1,0 +1,1 @@
+simple module cat-image processor app

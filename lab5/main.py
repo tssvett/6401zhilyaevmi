@@ -1,99 +1,83 @@
+#!/usr/bin/env python3
+"""
+Главный модуль для обработки изображений кошек.
+"""
+import argparse
 import asyncio
-import logging
 import time
 
-from lab2.processor.CatImageProcessor import CatImageProcessor
-from lab5.processor.AsyncCatImageProcessor import AsyncCatImageProcessor
-
-import lab5.my_logging
-
-logger = logging.getLogger(__name__)
+# Используем относительные импорты
+from .CatImageProcessor import CatImageProcessor
+from .logging_config import setup_logging, add_logging_args
 
 
-async def test_async_version(limit: int = 5):
-    logger.info(f"=== Тестирование АСИНХРОННОЙ версии ({limit} изображений) ===")
+def parse_args():
+    """Парсинг аргументов командной строки."""
+    parser = argparse.ArgumentParser(
+        description='Загрузка и обработка изображений кошек'
+    )
+    parser.add_argument('-l', '--limit', type=int, default=10,
+                        help='Количество изображений для загрузки (макс 100)')
 
-    start_time = time.time()
+    # Добавляем аргументы для логирования
+    add_logging_args(parser)
 
-    try:
-        processor = AsyncCatImageProcessor(
-            max_download_workers=3,
-            max_process_workers=4,
-            max_save_workers=2
-        )
-        result = await processor.run_pipeline(limit)
-
-        end_time = time.time()
-        async_time = end_time - start_time
-
-        logger.info(f"Асинхронная версия выполнена за: {async_time: .2f} секунд")
-        logger.info(f"Статистика: {result.get('successfully_saved', 0)}/{limit} успешно обработано")
-
-        return async_time
-
-    except Exception as e:
-        logger.error(f"Ошибка в асинхронной версии: {e}")
-        return float('inf')
+    return parser
 
 
-def test_sync_version(limit: int = 5):
-    logger.info(f"=== Тестирование СИНХРОННОЙ версии ({limit} изображений) ===")
-
-    start_time = time.time()
+async def async_main(args):
+    """Асинхронная основная функция."""
+    # Настраиваем логирование с аргументами
+    logger = setup_logging(log_file=args.log_file, log_dir=args.log_dir)
 
     try:
+        logger.info("Запуск обработки изображений кошек")
+        start_time = time.time()
+
+        limit = args.limit
+        if limit > 100:
+            logger.warning("Максимальное количество изображений - 100. Установлено 100.")
+            limit = 100
+
+        logger.debug(f"Запрошено изображений: {limit}")
         processor = CatImageProcessor()
-        api_data = processor.get_json_images(limit)
 
-        if api_data:
-            cat_images = processor.json_to_cat_images(api_data)
-            processed_data = processor.process_images(cat_images)
-            processor.save_images(cat_images, processed_data)
+        # Синхронное получение JSON с данными изображений
+        logger.info("Получение данных изображений из API...")
+        cat_data = await processor.get_cat_images(limit)
 
-        end_time = time.time()
-        sync_time = end_time - start_time
-        logger.info(f"Синхронная версия выполнена за: {sync_time:.2f} секунд")
-        return sync_time
+        if not cat_data:
+            logger.error("Не удалось получить изображения кошек.")
+            return
 
+        logger.info(f"Получено {len(cat_data)} изображений")
+
+        # Многопроцессорная обработка изображений
+        logger.info("Начало обработки изображений...")
+        processed_images = await processor.process_images(cat_data)
+
+        # Асинхронное сохранение изображений
+        logger.info("Сохранение изображений...")
+        await processor.save_images(processed_images)
+
+        total_time = time.time() - start_time
+        logger.info(f"Успешно обработано и сохранено {len(processed_images)} изображений кошек!")
+        logger.info(f"Общее время выполнения: {total_time:.2f} секунд")
+
+    except ValueError as e:
+        logger.error(f"Ошибка ввода: {e}")
     except Exception as e:
-        logger.error(f"Ошибка в синхронной версии: {e}")
-        return float('inf')
+        logger.exception(f"Неожиданная ошибка: {e}")
 
 
-async def main():
-    limit = 1
+def main():
+    """Синхронная точка входа для консольного скрипта."""
+    parser = parse_args()
+    args = parser.parse_args()
 
-    logger.info("СРАВНЕНИЕ ПРОИЗВОДИТЕЛЬНОСТИ: СИНХРОННАЯ vs АСИНХРОННАЯ")
-    logger.info("=" * 60)
-
-    async_time = await test_async_version(limit)
-
-    logger.info("Пауза между тестами...")
-    await asyncio.sleep(2)
-
-    sync_time = test_sync_version(limit)
-
-    # Вывод результатов сравнения
-    logger.info("\n" + "=" * 60)
-    logger.info("РЕЗУЛЬТАТЫ СРАВНЕНИЯ:")
-    logger.info("=" * 60)
-    logger.info(f"Количество изображений: {limit}")
-    logger.info(f"Синхронная версия:  {sync_time: .2f} секунд")
-    logger.info(f"Асинхронная версия: {async_time: .2f} секунд")
-
-    if async_time < sync_time:
-        speedup = sync_time / async_time
-        logger.info(f"Ускорение: {speedup: .2f}x")
-        logger.info("Асинхронная версия БЫСТРЕЕ! Мультипроцессинг работает!")
-    else:
-        slowdown = async_time / sync_time
-        logger.info(f"Замедление: {slowdown: .2f}x")
-        logger.info("Синхронная версия быстрее (возможно из-за накладных расходов)")
-
-    logger.info("=" * 60)
+    # Запускаем асинхронную функцию
+    asyncio.run(async_main(args))
 
 
 if __name__ == "__main__":
-    logger.info("Запуск приложения")
-    asyncio.run(main())
-    logger.info("Приложение завершено")
+    main()
