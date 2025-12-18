@@ -32,7 +32,6 @@ class TestCatImage(unittest.TestCase):
 
             mock_lib.edge_detection.assert_called_once_with(self.test_image)
             mock_custom.edge_detection.assert_called_once_with(self.test_image)
-
             self.assertIsNotNone(self.cat_image.lib_image)
             self.assertIsNotNone(self.cat_image.custom_image)
 
@@ -55,7 +54,6 @@ class TestCatImage(unittest.TestCase):
 
         self.assertIsInstance(result, CatImage)
         self.assertEqual(result.breed, "TestBreed")
-
         # Проверяем что значения сложились
         expected = np.clip(self.test_image.astype(np.float32) + 50, 0, 255).astype(np.uint8)
         np.testing.assert_array_almost_equal(result.image, expected)

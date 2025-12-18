@@ -4,11 +4,18 @@
 """
 import argparse
 import asyncio
-import time
 
+import time
+import sys
+
+sys.path.append("D:\\chromedriver\\6401zhilyaevmi")
+__package__ = "lab5"
+print("Я МЕТКА" + __package__)
 # Используем относительные импорты
-from .CatImageProcessor import CatImageProcessor
-from .logging_config import setup_logging, add_logging_args
+
+from .src.CatImageProcessor import CatImageProcessor
+from .src.logging_config import setup_logging, add_logging_args
+
 
 
 def parse_args():
