@@ -1,0 +1,21 @@
+2025-12-18 01:27:48 - root - INFO - main.py:34 - Запуск обработки изображений кошек
+2025-12-18 01:27:48 - root - DEBUG - main.py:42 - Запрошено изображений: 10
+2025-12-18 01:27:48 - lab5.CatClient - DEBUG - CatClient.py:24 - Инициализирован CatClient
+2025-12-18 01:27:48 - lab5.CatImageProcessor - DEBUG - CatImageProcessor.py:27 - Инициализирован CatImageProcessor
+2025-12-18 01:27:48 - root - INFO - main.py:46 - Получение данных изображений из API...
+2025-12-18 01:27:48 - lab5.CatImageProcessor - INFO - CatImageProcessor.py:31 - Начало получения 10 изображений...
+2025-12-18 01:27:48 - lab5.CatClient - INFO - CatClient.py:36 - Синхронное получение 10 изображений из API...
+2025-12-18 01:27:48 - urllib3.connectionpool - DEBUG - connectionpool.py:1049 - Starting new HTTPS connection (1): api.thecatapi.com:443
+2025-12-18 01:27:50 - urllib3.connectionpool - DEBUG - connectionpool.py:544 - https://api.thecatapi.com:443 "GET /v1/images/search?limit=10&has_breeds=1&api_key=live_tLTNZQ0HZjalUpqBFXwhpA0BNXMLIzPcDR4vfUw9Cq8XThV0NPwVZKRtVx3lg3l4 HTTP/1.1" 200 None
+2025-12-18 01:27:50 - lab5.CatClient - INFO - CatClient.py:51 - Получение данных из API завершено за 1.84 секунд
+2025-12-18 01:27:50 - lab5.CatClient - INFO - CatClient.py:113 - Парсинг API ответа: найдено 10 изображений
+2025-12-18 01:27:50 - lab5.CatImageProcessor - DEBUG - CatImageProcessor.py:58 - Загрузка изображения 1 начата
+2025-12-18 01:27:50 - lab5.CatImageProcessor - DEBUG - CatImageProcessor.py:58 - Загрузка изображения 2 начата
+2025-12-18 01:27:50 - lab5.CatImageProcessor - DEBUG - CatImageProcessor.py:58 - Загрузка изображения 3 начата
+2025-12-18 01:27:50 - lab5.CatImageProcessor - DEBUG - CatImageProcessor.py:58 - Загрузка изображения 4 начата
+2025-12-18 01:27:50 - lab5.CatImageProcessor - DEBUG - CatImageProcessor.py:58 - Загрузка изображения 5 начата
+2025-12-18 01:27:50 - lab5.CatImageProcessor - DEBUG - CatImageProcessor.py:58 - Загрузка изображения 6 начата
+2025-12-18 01:27:50 - lab5.CatImageProcessor - DEBUG - CatImageProcessor.py:58 - Загрузка изображения 7 начата
+2025-12-18 01:27:50 - lab5.CatImageProcessor - DEBUG - CatImageProcessor.py:58 - Загрузка изображения 8 начата
+2025-12-18 01:27:50 - lab5.CatImageProcessor - DEBUG - CatImageProcessor.py:58 - Загрузка изображения 9 начата
+2025-12-18 01:27:50 - lab5.CatImageProcessor - DEBUG - CatImageProcessor.py:58 - Загрузка изображения 10 начата

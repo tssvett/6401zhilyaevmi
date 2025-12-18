@@ -1,0 +1,16 @@
+2025-12-18 01:02:46 - root - INFO - main.py:34 - Запуск обработки изображений кошек
+2025-12-18 01:02:46 - root - DEBUG - main.py:42 - Запрошено изображений: 1
+2025-12-18 01:02:46 - lab5.CatClient - ERROR - CatClient.py:31 - API_KEY не найден. Добавьте API_KEY в файл .env
+2025-12-18 01:02:46 - root - ERROR - main.py:68 - Ошибка ввода: API_KEY не найден. Добавьте API_KEY в файл .env
+2025-12-18 01:03:19 - root - INFO - main.py:34 - Запуск обработки изображений кошек
+2025-12-18 01:03:19 - root - DEBUG - main.py:42 - Запрошено изображений: 1
+2025-12-18 01:03:19 - lab5.CatClient - DEBUG - CatClient.py:24 - Инициализирован CatClient
+2025-12-18 01:03:19 - lab5.CatImageProcessor - DEBUG - CatImageProcessor.py:27 - Инициализирован CatImageProcessor
+2025-12-18 01:03:19 - root - INFO - main.py:46 - Получение данных изображений из API...
+2025-12-18 01:03:19 - lab5.CatImageProcessor - INFO - CatImageProcessor.py:31 - Начало получения 1 изображений...
+2025-12-18 01:03:19 - lab5.CatClient - INFO - CatClient.py:36 - Синхронное получение 1 изображений из API...
+2025-12-18 01:03:19 - urllib3.connectionpool - DEBUG - connectionpool.py:1049 - Starting new HTTPS connection (1): api.thecatapi.com:443
+2025-12-18 01:03:20 - urllib3.connectionpool - DEBUG - connectionpool.py:544 - https://api.thecatapi.com:443 "GET /v1/images/search?limit=1&has_breeds=1&api_key=live_tLTNZQ0HZjalUpqBFXwhpA0BNXMLIzPcDR4vfUw9Cq8XThV0NPwVZKRtVx3lg3l4 HTTP/1.1" 200 None
+2025-12-18 01:03:20 - lab5.CatClient - INFO - CatClient.py:51 - Получение данных из API завершено за 1.56 секунд
+2025-12-18 01:03:20 - lab5.CatClient - INFO - CatClient.py:113 - Парсинг API ответа: найдено 1 изображений
+2025-12-18 01:03:20 - lab5.CatImageProcessor - DEBUG - CatImageProcessor.py:58 - Загрузка изображения 1 начата

@@ -1,4 +1,5 @@
 .venv/
+/test_env
 .flake8
 .idea/
 lab1/results/
@@ -6,5 +7,9 @@ lab2/env/.env
 lab2/cat_images/
 lab4/cat_images
 lab4/cat_images_async
+lab5/cat_images
+lab5/cat_images_async
+lab5/logs
+lab5/my_logging/logs
 __pycache__/
 

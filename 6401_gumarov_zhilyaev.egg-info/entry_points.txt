@@ -1,0 +1,2 @@
+[console_scripts]
+cat-processor = lab5.main:main
