@@ -14,7 +14,6 @@ setup(
     description="Пакет для загрузки и обработки изображений кошек",
     long_description=read_me_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/6401-gumarov-zhilyaev",
     packages=find_packages(),
     python_requires=">=3.8",
     install_requires=[
