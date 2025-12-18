@@ -15,7 +15,6 @@ import cv2
 import numpy as np
 
 from .CatClient import CatClient
-# Используем относительные импорты
 from .CatImage import CatImage
 
 logger = logging.getLogger(__name__)

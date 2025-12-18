@@ -7,7 +7,7 @@ import os
 import sys
 
 
-def setup_logging(log_file: str = "app.log", log_dir: str = ".",
+def setup_logging(log_file: str = "app.log", log_dir: str = "bebebe",
                   console_level: int = logging.INFO,
                   file_level: int = logging.DEBUG) -> logging.Logger:
     """

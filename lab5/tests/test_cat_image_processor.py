@@ -1,6 +1,3 @@
-"""
-Тесты для класса CatImageProcessor.
-"""
 import asyncio
 import unittest
 from unittest.mock import Mock, patch, AsyncMock
@@ -80,7 +77,3 @@ class TestCatImageProcessor(unittest.TestCase):
             )
 
             mock_save.assert_not_called()
-
-
-if __name__ == '__main__':
-    unittest.main()
